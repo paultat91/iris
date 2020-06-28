@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Jun 24 17:46:06 2020
+
+@author: paul
+"""
+
+import pandas as pd
+import matplotlib.pyplot as plt
+from autograd import grad 
+import autograd.numpy as np
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+
+def relu(x):
+    #return np.max(0,x)
+    return x * (x > 0)
+
+def softmax(x):
+    exp = np.exp(x) 
+    return exp / exp.sum(0)
+
+def Error(W_hh, W_oh, b_h, b_o, x, y):
+    return np.sum(np.diag(np.dot(y, -np.log(softmax(np.dot(W_oh, relu(np.dot(W_hh,x.T)+b_h))+b_o)))))/len(x)
+
+def forward(x, y, W_hh, W_oh, b_h, b_o):
+    h = relu(np.dot(W_hh,x.T) + b_h)
+    y_hat = softmax(np.dot(W_oh,h) + b_o)
+    pred = np.expand_dims(np.argmax(y_hat, axis=0), axis=0).T
+    num_wrong = np.count_nonzero(encoder.inverse_transform(y) - pred)
+    acc = (len(x) - num_wrong)/len(x)
+    err = Error(W_hh, W_oh, b_h, b_o, x, y) 
+    return acc, err
+
+def update(W_hh, W_oh, b_h, b_o, x, y):
+    dE_dWhh = grad(Error, argnum=0)(W_hh, W_oh, b_h, b_o, x, y)
+    dE_dWoh = grad(Error, argnum=1)(W_hh, W_oh, b_h, b_o, x, y)
+    dE_dbh = grad(Error, argnum=2)(W_hh, W_oh, b_h, b_o, x, y)
+    dE_dbo = grad(Error, argnum=3)(W_hh, W_oh, b_h, b_o, x, y)
+    
+    W_hh = W_hh - learning_rate*dE_dWhh
+    W_oh = W_oh - learning_rate*dE_dWoh
+    b_h = b_h - learning_rate*dE_dbh
+    b_o = b_o - learning_rate*dE_dbo
+    return W_hh, W_oh, b_h, b_o
+
+n = 1
+learning_rate = 0.1
+updates = 1000
+epochs = 1
+var = 0.001
+    
+
+iris_data = load_iris() # load the iris dataset
+
+x = iris_data.data
+y_ = iris_data.target.reshape(-1, 1) # Convert data to a single column
+
+# One Hot encode the class labels
+encoder = OneHotEncoder(sparse=False)
+y = encoder.fit_transform(y_)
+
+# Split the data for training and testing
+train_x, test_x, train_y, test_y = train_test_split(x, y, test_size=0.20)
+
+
+acc = np.array([])
+
+Whh1 = np.array([])
+Whh2 = np.array([])
+Whh3 = np.array([])
+Whh4 = np.array([])
+
+Woh1 = np.array([])
+Woh2 = np.array([])
+Woh3 = np.array([])
+
+for epoch in range(epochs):
+    W_oh = np.random.normal(0, var, [3,n])          
+    W_hh = np.random.normal(0, var, [n,4]) 
+    b_h = np.zeros([n,1])
+    b_o = np.zeros([3,1])
+    
+    for up in range(updates):
+        #train_acc, train_err = forward(train_x, train_y)
+        W_hh, W_oh, b_h, b_o = update(W_hh, W_oh, b_h, b_o, train_x, train_y)
+        
+    test_acc, test_err = forward(test_x, test_y, W_hh, W_oh, b_h, b_o)
+    acc = np.append(acc, test_acc)
+    
+    if test_acc>.8:
+        Whh1 = np.append(Whh1, W_hh[0][0])
+        Whh2 = np.append(Whh2, W_hh[0][1])
+        Whh3 = np.append(Whh3, W_hh[0][2])
+        Whh4 = np.append(Whh4, W_hh[0][3])
+      
+        Woh1 = np.append(Woh1, W_oh[0][0])
+        Woh2 = np.append(Woh2, W_oh[1][0])
+        Woh3 = np.append(Woh3, W_oh[2][0])
+         
+plt.scatter(np.arange(len(Whh1)), Whh1, color='r')     
+plt.scatter(np.arange(len(Whh2)), Whh2, color='b') 
+plt.scatter(np.arange(len(Whh3)), Whh3, color='y') 
+plt.scatter(np.arange(len(Whh4)), Whh4, color='g') 
+plt.figure()
+plt.scatter(np.arange(len(Woh1)), Woh1, color='r')     
+plt.scatter(np.arange(len(Woh2)), Woh2, color='b') 
+plt.scatter(np.arange(len(Woh3)), Woh3, color='y') 
+
+# W_hh_mine = np.array([[-.9,-1,2,2.1]])
+# W_oh_mine = np.array([[-2.6],[.7],[-1.9]])
+# b_h_mine = np.array([[-.4]])
+# b_o_mine = np.array([[3.5],[.8],[-4.3]])
