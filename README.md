@@ -1,3 +1,3 @@
 # iris
 
-Here is a Neural Network written from scratch to classify the iris data set. 
+Here are two Neural Networks (one written from scratch and the other using Keras) to classify the iris data set. 
